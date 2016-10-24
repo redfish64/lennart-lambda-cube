@@ -21,7 +21,7 @@ usage = putStr "\
 \Usage: cube           -- start in interactive mode\n\
 \       cube files     -- concatenate files, type check, evaluate\n\
 \       cube - files   -- insert let&in, concatenate files, type check, evaluate\n\
-\"
+\ "
 
 batch :: [FilePath] -> IO ()
 batch ("-":names) = mapM readFile names >>= batch' . addIn . ("let " :)

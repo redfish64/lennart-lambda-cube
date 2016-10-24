@@ -26,9 +26,5 @@ repl p = do
                      else do
                         addHistory line
                         loop s'
-            ) `Control.Exception.catch` ( \ exc ->
-                do
-                    putStrLn $ "\nInterrupted (" ++ show exc ++ ")"
-                    loop s
             )
     loop state

@@ -37,19 +37,19 @@ freeVars (Let i t e b) = freeVars (expandLet i t e b)
 freeVars (Kind _) = []
 
 subst :: Sym -> Expr -> Expr -> Expr
-subst v x = sub
+subst v x = sub    -- v = symbol, x = expression
   where sub e@(Var i) = if i == v then x else e
         sub (App f a) = App (sub f) (sub a)
         sub (Lam i t e) = abstr Lam i t e
-        sub (Pi i t e) = abstr Pi i t e
+        sub (Pi i t e) = abstr Pi i t e   -- i = Sym, t = type of sym, e = expression (which is also a type, but they are both the same)
 	sub (Let i t e b) = let App (Lam i' t' b') e' = sub (expandLet i t e b)
 	    	       	    in  Let i' t' e' b'
         sub (Kind k) = Kind k
         fvx = freeVars x
         cloneSym e i = loop i
-           where loop i' = if i' `elem` vars then loop (i ++ "'") else i'
+           where loop i' = if i' `elem` vars then loop (i' ++ "'") else i'
                  vars = fvx ++ freeVars e
-        abstr con i t e =
+        abstr con i t e = -- con = op_type, i = Sym, t = type of sym, e = expression
             if v == i then
                 con i (sub t) e
             else if i `elem` fvx then
@@ -269,8 +269,12 @@ pLet = do
 pBind :: ReadP (Sym, Type, Maybe Expr)
 pBind = pBindH +++ pBindR
 
+--matches an entire set of two lines corresponding to a definition
+--ex:
+-- id :: forall (a::*) . a -> a;
+-- id a x = x;
 pBindH :: ReadP (Sym, Type, Maybe Expr)
-pBindH = do
+pBindH = do     --sy = symbol, ty = type, as = args, b = expression 
     sy <- pSym
     sstring "::"
     ty <- pType
@@ -284,6 +288,7 @@ pBindH = do
         pfail
      else
         return (sy, ty, Just e)
+
 
 matchH :: Expr -> [Sym] -> Expr -> ReadP Expr
 matchH _ [] e = return e

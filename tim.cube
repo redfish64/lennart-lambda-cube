@@ -1,0 +1,5 @@
+
+
+Id :: forall(a :: *) . a -> a;
+
+Id a x = x;
