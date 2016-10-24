@@ -51,14 +51,14 @@ unreads s =
 		lrest = length (filter (=='\n') rest)
 	    in  Left $ "line " ++ show (ls - lrest) ++ ": " ++ rest
 
-data State = State { defs :: String, skipLam :: Bool } deriving (Show)
+data State = State { defs :: String, skipLam :: Bool, dat :: Maybe (Expr, Type) } deriving (Show)
 
 interactive :: IO ()
 interactive = repl $ REPL { repl_init = cinit, repl_eval = ceval, repl_exit = cexit }
   where cinit = do
           putStrLn "Welcome to the Cube."
 	  putStrLn "Use :help to get help."
-	  return ("Cube> ", State "" False)
+	  return ("Cube> ", State "" False Nothing)
 	cexit _ = putStrLn "Bye."
 	ceval s line = do
 	    let rest = dropWhile isSpace $ dropWhile (not . isSpace) line
@@ -75,6 +75,16 @@ interactive = repl $ REPL { repl_init = cinit, repl_eval = ceval, repl_exit = ce
 	      ":l" : _ -> load
 	      ":load" : _ -> load
 	      ":defs" : _ -> do putStrLn (defs s); return (False, s)
+	      ":type" : _ -> do
+	     		       case (dat s) of
+			         Nothing -> putStrLn("undefined")
+			         Just (e,t) -> putStrLn (show t);
+			       return (False, s)
+	      ":expr" : _ -> do
+	     		       case (dat s) of
+			         Nothing -> putStrLn("undefined")
+			         Just (e,t) -> putStrLn (show e);
+			       return (False, s)
 	      ":skip" : _ -> return (False, s { skipLam = not (skipLam s) })
 	      _ -> do evalPrint s line 
 	              return (False, s)
@@ -94,7 +104,7 @@ interactive = repl $ REPL { repl_init = cinit, repl_eval = ceval, repl_exit = ce
 	     mt <- readAndCheck s' "\\ (a::*) -> a"
 	     case mt of
 	         Nothing -> return (False, s)
-		 Just _ ->  return (False, s')
+		 d@(Just (e,t)) ->  return (False, s' { dat = d } )
 
 	readAndCheck s e =
 	     case unreads $ "let " ++ defs s ++ " in " ++ e of

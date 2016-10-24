@@ -292,7 +292,8 @@ pBindH = do     --sy = symbol, ty = type, as = args, b = expression
 
 matchH :: Expr -> [Sym] -> Expr -> ReadP Expr
 matchH _ [] e = return e
-matchH (Pi v t t') (a:as) e | v == a || v == "_" = do
+matchH (Pi v t t') (a:as) e
+  | v == a || v == "_" = do
     e' <- matchH t' as e
     return (Lam a t e')
 matchH _ _ _ = pfail
